@@ -1,12 +1,10 @@
-import * as React from "react";
+import * as React from 'react';
+import { Main } from '../Main';
 
-import { Main } from "../Main";
-
-export default class App extends React.Component {
+export class App extends React.Component {
   render() {
     return (
       <Main />
     );
   }
 }
-
