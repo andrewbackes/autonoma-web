@@ -2,19 +2,27 @@ import * as React from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three-orbitcontrols-ts';
 
+import { GeometryManager, Bot } from '.';
+
 export class Vector {
   x: number
   y: number
   z: number
 }
 
-interface PointCloudProps {
-  points: Vector[]
+export class Point {
+  origin: Vector
+  orientation: any
+  vector: Vector
 }
 
 class PointCloudState {
   width: number
   height: number
+}
+
+interface PointCloudProps {
+  geometryManager: any
 }
 
 export class PointCloud extends React.Component<PointCloudProps, PointCloudState> {
@@ -27,11 +35,9 @@ export class PointCloud extends React.Component<PointCloudProps, PointCloudState
 
   constructor(props: PointCloudProps) {
     super(props)
-
     this.start = this.start.bind(this)
     this.stop = this.stop.bind(this)
     this.animate = this.animate.bind(this)
-    this.createPointCloud = this.createPointCloud.bind(this)
     this.resize = this.resize.bind(this);
     this.state = { width: 1080, height: 768 }
   }
@@ -74,21 +80,8 @@ export class PointCloud extends React.Component<PointCloudProps, PointCloudState
 
     this.start()
     this.resize()
-  }
-
-  createPointCloud() {
-    console.log("Adding " + this.props.points.length + " points.")
-    const geometry = new THREE.Geometry();
-    var pointMaterial = new THREE.PointsMaterial({ color: 0x888888, size: 1.0 });
-    var pointCloud = new THREE.Points(geometry, pointMaterial);
-    this.props.points.forEach(vector => {
-      var point = new THREE.Vector3();
-      point.x = vector.x
-      point.y = vector.y
-      point.z = vector.z
-      geometry.vertices.push(point);
-    })
-    this.scene.add(pointCloud);
+    new this.props.geometryManager(this.scene)
+    new Bot(this.scene)
   }
 
   componentWillUnmount() {
@@ -132,14 +125,13 @@ export class PointCloud extends React.Component<PointCloudProps, PointCloudState
   }
 
   render() {
-    if (this.scene) {
-      this.createPointCloud()
-    }
     return (
-      <div
-        style={{ width: this.state.width, height: this.state.height }}
-        ref={(mount) => { this.mount = mount }}
-      />
+      <div id="point-cloud-container">
+        <div
+          style={{ width: this.state.width, height: this.state.height }}
+          ref={(mount) => { this.mount = mount }}
+        />
+      </div>
     )
   }
 }
