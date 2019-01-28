@@ -13,11 +13,11 @@ export class Bot {
     geometries: any[] = []
     origin: Vector = { x: 0, y: 0, z: 0 }
 
-    constructor(scene: any) {
+    constructor(scene: any, origin: Vector) {
         this.scene = scene;
         this.draw()
         this.setOrigin = this.setOrigin.bind(this)
-        this.setOrigin({ x: 0, y: 0, z: 0 })
+        this.setOrigin(origin)
     }
 
     public setOrigin(pos: Vector) {

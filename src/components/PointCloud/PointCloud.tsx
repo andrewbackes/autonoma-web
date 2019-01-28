@@ -2,8 +2,6 @@ import * as React from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three-orbitcontrols-ts';
 
-import { GeometryManager, Bot } from '.';
-
 export class Vector {
   x: number
   y: number
@@ -81,7 +79,7 @@ export class PointCloud extends React.Component<PointCloudProps, PointCloudState
     this.start()
     this.resize()
     new this.props.geometryManager(this.scene)
-    new Bot(this.scene)
+    //new Bot(this.scene)
   }
 
   componentWillUnmount() {
