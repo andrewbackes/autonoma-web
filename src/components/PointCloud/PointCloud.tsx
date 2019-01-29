@@ -54,7 +54,7 @@ export class PointCloud extends React.Component<PointCloudProps, PointCloudState
       0.1,
       2000
     )
-    this.camera.position.set(400, 200, 0);
+    this.camera.position.set(0, 400, 0);
     this.controls = new OrbitControls(this.camera)
 
     // an animation loop is required when either damping or auto-rotation are enabled
@@ -62,12 +62,13 @@ export class PointCloud extends React.Component<PointCloudProps, PointCloudState
     this.controls.dampingFactor = 0.25;
     this.controls.minDistance = 0;
     this.controls.maxDistance = 5000
+    //this.controls.target = new THREE.Vector3(100, 100, 100);
     // this.controls.maxPolarAngle = Math.PI / 2;
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true })
 
     // this.createPointCloud()
-    this.scene.add(new THREE.AxesHelper(20));
+    //this.scene.add(new THREE.AxesHelper(20));
 
     this.renderer.setClearColor('#000000')
     this.renderer.setSize(width, height)
@@ -78,7 +79,7 @@ export class PointCloud extends React.Component<PointCloudProps, PointCloudState
 
     this.start()
     this.resize()
-    new this.props.geometryManager(this.scene)
+    new this.props.geometryManager(this.scene, this.camera, this.controls)
     //new Bot(this.scene)
   }
 

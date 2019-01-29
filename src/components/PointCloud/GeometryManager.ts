@@ -6,21 +6,28 @@ import { Bot } from '.';
 
 export class GeometryManager {
     scene: any
-    pointsPerGeometry: number = 380800
-    nextPointIndex: number = 0
-    geometry: any
+    camera: any
+    controls: any
+    //pointsPerGeometry: number = 380800
+    //nextPointIndex: number = 0
+    //geometry: any
     path: any[]
 
-    constructor(scene: any) {
+    constructor(scene: any, camera: any, controls: any) {
         this.scene = scene;
-        this.addPoint = this.addPoint.bind(this)
-        this.addVector = this.addVector.bind(this)
+        this.camera = camera;
+        this.controls = controls;
+        //this.addPoint = this.addPoint.bind(this)
+        //this.addVector = this.addVector.bind(this)
         this.drawPath = this.drawPath.bind(this)
-        this.newPointSet()
+        this.drawPointcloud = this.drawPointcloud.bind(this)
+        this.icp = this.icp.bind(this)
+        this.deadReckoning = this.deadReckoning.bind(this)
+        //this.newPointSet()
         //this.websocket()
         this.http()
     }
-
+    /*
     newPointSet() {
         this.geometry = new THREE.Geometry();
         let pointMaterial = new THREE.PointsMaterial({ color: 0x888888, size: 3.0 });
@@ -51,11 +58,11 @@ export class GeometryManager {
         this.geometry.verticesNeedUpdate = true;
         this.nextPointIndex++;
     }
-
+    */
     drawPath(path: any[]) {
         const geometry = new THREE.Geometry();
         const material = new THREE.LineBasicMaterial({
-            color: 0x3498DB
+            color: 0x00FF00
         })
         path.forEach(p => {
             geometry.vertices.push(
@@ -64,15 +71,34 @@ export class GeometryManager {
         });
         const line = new THREE.Line(geometry, material);
         this.scene.add(line)
-        if (path.length > 0) {
-            new Bot(this.scene, {
-                x: path[path.length - 1]['x'],
-                y: path[path.length - 1]['z'] + 22,
-                z: -path[path.length - 1]['y']
-            } as Vector)
-        }
     }
 
+    deadReckoning(v: any[]) {
+        this.drawPointcloud(v, 0x696969)
+    }
+
+    icp(v: any[]) {
+        //this.drawPointcloud(v, 0x888888)
+        //this.drawPointcloud(v, 0xA9A9A9)
+        this.drawPointcloud(v, 0x0000FF);
+    }
+
+    drawPointcloud(v: any[], color: any) {
+        const geometry = new THREE.Geometry();
+        const material = new THREE.PointsMaterial({ color: color, size: 3.0 });
+        console.log("icp points: " + v.length)
+        for (let i = 0; i < v.length; i++) {
+            let point = new THREE.Vector3();
+            point.x = v[i]['x']
+            point.y = v[i]['z']
+            point.z = -v[i]['y']
+            geometry.vertices.push(point);
+        }
+        const pointset = new THREE.Points(geometry, material);
+        this.scene.add(pointset);
+    }
+
+    /*
     websocket() {
         const ws = new WebSocket("ws://localhost:8080/scans/dining-room.json");
         //const ws = new WebSocket("ws://localhost:8080/live");
@@ -84,7 +110,7 @@ export class GeometryManager {
             console.log("Websocket closed");
         };
     }
-
+    */
     http() {
         const self = this
         fetch('http://localhost:8080/perception')
@@ -93,12 +119,33 @@ export class GeometryManager {
             })
             .then(function (myJson) {
                 // console.log(JSON.stringify(myJson));
+
+                // Fitted scans
                 const points = myJson['environmentModel']['pointCloud']['points'];
-                for (let i = 0; i < points.length; i++) {
-                    self.addVector(points[i]);
+                self.icp(points);
+
+                // Dead reckoning
+                const scans = myJson['scans'];
+                for (let i = 0; i < scans.length; i++) {
+                    self.deadReckoning(scans[i]);
                 }
                 const path = myJson['path'];
                 self.drawPath(path);
+
+                // Bot location
+                const location = myJson['vehicle']['location'];
+                new Bot(self.scene, {
+                    x: location['x'],
+                    y: location['z'] + 22,
+                    z: -location['y']
+                } as Vector)
+
+                const loc = new THREE.Vector3(location['x'], location['z'], -location['y'])
+                self.camera.position.x = location['x'];
+                self.camera.position.y = location['z'] + 500;
+                self.camera.position.z = -location['y'];
+                self.controls.target = loc;
+
             });
     }
 }
